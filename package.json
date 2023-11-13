@@ -16,17 +16,21 @@
     "node": "^18.17.0 || ^20.9.0",
     "homebridge": "^1.6.0"
   },
-  "main": "dist/index.js",
+  "main": "plugin.js",
   "scripts": {
     "lint": "eslint src/**.ts --max-warnings=0",
-    "watch": "npm run build && npm link && nodemon",
+    "watch": "npm run build && nodemon",
     "build": "rimraf ./dist && tsc",
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
     "homebridge-plugin"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "hap-node-client": "^0.2.4",
+    "mqtt": "^5.2.1",
+    "mqtt-pattern": "^2.1.0"
+  },
   "devDependencies": {
     "@types/node": "^18.16.20",
     "@typescript-eslint/eslint-plugin": "^5.62.0",

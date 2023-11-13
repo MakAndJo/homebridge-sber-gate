@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "Sber Gate",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,8 +9,48 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "Sber Gate",
+        "description": "Plugin name as displayed in the Homebridge log"
+      },
+      "username": {
+        "title": "Username",
+        "type": "string",
+        "required": true,
+        "description": "Username for sber studio project (mqtt)"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string",
+        "required": true,
+        "description": "Password for sber studio project (mqtt)"
+      },
+      "debug": {
+        "title": "Enable Debug Mode",
+        "type": "boolean"
       }
     }
-  }
+  },
+  "layout": [
+    "name",
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [
+        "username",
+        {
+          "key": "password",
+          "type": "password"
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Optional Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        "debug"
+      ]
+    }
+  ]
 }
