@@ -1,8 +1,7 @@
 "use strict";
 
-var EventEmitter = require('events').EventEmitter;
-
-var SberLocal = require('./lib/sberLocal.js');
+const SberLocal = require('./lib/sberLocal.js');
+const HapClient = require('./lib/hapClient.js');
 var actions = require('./lib/actions.js');
 
 const packageConfig = require('./package.json');
@@ -24,7 +23,6 @@ function sberGate(log, config, api) {
   this.config = config;
   this.api = api;
 
-  this.eventBus = new EventEmitter();
   this.pin = config['pin'] || "031-45-154";
   this.username = config['username'] || false;
   this.password = config['password'] || false;
@@ -53,7 +51,6 @@ sberGate.prototype = {
 
 sberGate.prototype.didFinishLaunching = function() {
   options = {
-    eventBus: this.eventBus,
     username: this.username,
     password: this.password,
     clientId: this.username,
@@ -63,13 +60,32 @@ sberGate.prototype.didFinishLaunching = function() {
     pin: this.pin,
   };
 
-  actions.hapDiscovery(options);
+  var hap = new HapClient({
+    pin: this.pin,
+    debug: false,
+  });
 
-  var sber = new SberLocal(options);
+  hap.homebridge.on('Ready', function (acc) {
+    this.log.debug("Hap Ready!");
+    sber.eventBus.emit('hapReady');
+  }.bind(this));
 
-  this.eventBus.on('commands', actions.sberCommands.bind(this));
-  this.eventBus.on('status_request', actions.sberStatus.bind(this));
-  this.eventBus.on('config_request', actions.sberDiscovery.bind(this));
+  hap.homebridge.on('hapEvent', function (event) {
+    this.log.debug('>>hap event', event);
+  }.bind(this));
+
+  actions.sberInit(options, hap.homebridge);
+
+  var sber = new SberLocal({
+    username: this.username,
+    password: this.password,
+    clientId: this.username,
+    log: this.log,
+  });
+
+  sber.eventBus.on('commands', actions.sberCommands.bind(this));
+  sber.eventBus.on('status_request', actions.sberStatus.bind(this));
+  sber.eventBus.on('config_request', actions.sberDiscovery.bind(this));
 };
 
 sberGate.prototype.configureAccessory = function(accessory) {
