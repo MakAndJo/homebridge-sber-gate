@@ -1,6 +1,6 @@
 "use strict";
 
-const SberLocal = require('./lib/sberLocal.js');
+const SberClient = require('./lib/sberClient.js');
 const HapClient = require('./lib/hapClient.js');
 var actions = require('./lib/actions.js');
 
@@ -58,25 +58,37 @@ sberGate.prototype.didFinishLaunching = function() {
     debug: false,
   });
 
-  hap.on('Ready', function (acc) {
+  hap.on('Ready', (acc) => {
     this.log("Hap Ready!");
-    sber.eventBus.emit('hapReady');
-  }.bind(this));
+    actions.sberDiscovery({}, (err, res) => {
+      sber.eventBus.emit('sber.out.config', err, res)
+    });
+  });
 
-  hap.on('hapEvent', function (event) {
+  hap.on('hapEvent', (event) => {
     this.log.debug('>>hap event', event);
-  }.bind(this));
+  });
 
   actions.sberInit(options, hap);
 
-  var sber = new SberLocal({
+  var sber = new SberClient({
     username: this.username,
     password: this.password,
     clientId: this.username,
     log: this.log,
   });
 
-  sber.eventBus.on('commands', actions.sberCommands.bind(this));
-  sber.eventBus.on('status_request', actions.sberStatus.bind(this));
-  sber.eventBus.on('config_request', actions.sberDiscovery.bind(this));
+  sber.eventBus.on('sber.in.config_request', (message) => {
+    actions.sberDiscovery(message, (err, res) => {
+      sber.eventBus.emit('sber.out.config', err, res);
+    });
+  });
+  sber.eventBus.on('sber.in.status_request', (message) => {
+    actions.sberStatus(message, (err, res) => {
+      sber.eventBus.emit('sber.out.status', err, res);
+    });
+  });
+  sber.eventBus.on('sber.in.commands', (message) => {
+    actions.sberCommands(message, (err, res) => { });
+  });
 };
