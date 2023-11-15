@@ -42,13 +42,6 @@ function sberGate(log, config, api) {
   );
 }
 
-sberGate.prototype = {
-  accessories: function(callback) {
-    this.log("accessories");
-    callback();
-  }
-};
-
 sberGate.prototype.didFinishLaunching = function() {
   options = {
     username: this.username,
@@ -65,16 +58,16 @@ sberGate.prototype.didFinishLaunching = function() {
     debug: false,
   });
 
-  hap.homebridge.on('Ready', function (acc) {
-    this.log.debug("Hap Ready!");
+  hap.on('Ready', function (acc) {
+    this.log("Hap Ready!");
     sber.eventBus.emit('hapReady');
   }.bind(this));
 
-  hap.homebridge.on('hapEvent', function (event) {
+  hap.on('hapEvent', function (event) {
     this.log.debug('>>hap event', event);
   }.bind(this));
 
-  actions.sberInit(options, hap.homebridge);
+  actions.sberInit(options, hap);
 
   var sber = new SberLocal({
     username: this.username,
@@ -86,9 +79,4 @@ sberGate.prototype.didFinishLaunching = function() {
   sber.eventBus.on('commands', actions.sberCommands.bind(this));
   sber.eventBus.on('status_request', actions.sberStatus.bind(this));
   sber.eventBus.on('config_request', actions.sberDiscovery.bind(this));
-};
-
-sberGate.prototype.configureAccessory = function(accessory) {
-  this.log("configureAccessory");
-  // callback();
 };
